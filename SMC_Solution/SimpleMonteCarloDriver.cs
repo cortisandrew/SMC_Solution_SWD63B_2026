@@ -4,6 +4,9 @@ using System.Text;
 
 namespace SMC_Solution;
 
+/// <summary>
+/// Test
+/// </summary>
 public class SimpleMonteCarloDriver
 {
     private ISimulation _simulator;
@@ -42,5 +45,36 @@ public class SimpleMonteCarloDriver
             throw new InvalidOperationException("You cannot estimate the expected value without any simulations");
 
         return _results.Average();
+    }
+
+    public double EstimateVariance()
+    {
+        if (_results == null || _results.Count == 0)
+            throw new InvalidOperationException("You cannot estimate the variance without any simulations");
+
+        double mu_estimate = EstimateExpectedValue();
+
+        return _results.Sum(
+                x => Math.Pow(x - mu_estimate, 2.0)
+            ) 
+            / (_results.Count - 1);
+    }
+
+    public double EstimateStandardDeviation()
+    {
+        return Math.Sqrt(EstimateVariance());
+    }
+
+    public double EstimateRMSE()
+    {
+        double sigma_estimate = EstimateStandardDeviation();
+
+        return sigma_estimate / Math.Sqrt(_results!.Count);
+    }
+
+    public int RequiredSimulations(double maxRMSE)
+    {
+        return (int)Math.Ceiling(
+            EstimateVariance() / Math.Pow(maxRMSE, 2.0));
     }
 }
